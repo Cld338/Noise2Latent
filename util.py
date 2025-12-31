@@ -1,42 +1,47 @@
+# from https://github.com/EmilienDupont/coin
+
 import torch
 import numpy as np
-from typing import Dict
 
-DTYPE_BIT_SIZE: Dict[torch.dtype, int] = {
-    torch.float32: 32,
-    torch.float: 32,
-    torch.float16: 16,
-    torch.half: 16,
-    torch.bfloat16: 16,
-    torch.uint8: 8,
-    torch.int8: 8,
-}
-
-def model_size_in_bits(model, target_bitwidth=16):
+def exp_golomb_bits(x):
     """
-    모델의 학습 가능한 파라미터 비트 수를 계산합니다.
-    복원기에서 시드(Seed)로 재생성 가능한 buffer(z_m, grid)는 계산에서 제외합니다.
+    Exponential-Golomb 코딩의 비트 수를 추정합니다
+    x: 양자화된 정수 텐서
     """
-    total_params = sum(p.nelement() for p in model.parameters() if p.requires_grad)
-    return total_params * target_bitwidth
+    x = x.abs().long()
+    # Signed mapping: 0 -> 0, 1 -> 1, -1 -> 2, 2 -> 3, -2 -> 4...
+    x_mapped = torch.where(x > 0, 2 * x - 1, 2 * x.abs())
+    # Bits = 2 * floor(log2(x+1)) + 1
+    return (2 * torch.floor(torch.log2(x_mapped + 1)) + 1).sum().item()
 
-def bpp(image, model, target_bitwidth=16):
-    """이미지 해상도 대비 BPP(Bits Per Pixel)를 계산합니다."""
-    if len(image.shape) == 4:
-        _, _, h, w = image.shape
-    else:
-        _, h, w = image.shape
-    num_pixels = h * w
-    return model_size_in_bits(model, target_bitwidth) / num_pixels
+def estimate_total_bits(model, q_step, seed_bits=16):
+    """
+    양자화된 파라미터와 시드 비트를 합산하여 전체 비트를 계산합니다
+    """
+    total_bits = 0
+    for p in model.parameters():
+        if p.requires_grad:
+            # 양자화 수행: p_q = round(p / q)
+            p_quantized = torch.round(p / q_step)
+            total_bits += exp_golomb_bits(p_quantized)
+    
+    return total_bits + seed_bits
+
+def get_quantized_model_state(model, q_step):
+    """특정 양자화 스텝이 적용된 모델의 state_dict를 반환합니다."""
+    new_state = {}
+    for name, param in model.named_parameters():
+        if param.requires_grad:
+            new_state[name] = torch.round(param / q_step) * q_step
+        else:
+            new_state[name] = param.clone()
+    return new_state
 
 def psnr(img1, img2):
-    """두 이미지 사이의 PSNR을 계산합니다."""
-    mse = (img1 - img2).detach().pow(2).mean()
-    if mse == 0:
-        return float('inf')
-    return 20. * np.log10(1.) - 10. * mse.log10().to('cpu').item()
+    mse = F.mse_loss(img1, img2)
+    if mse == 0: return float('inf')
+    return 20. * torch.log10(torch.tensor(1.0)) - 10. * torch.log10(mse)
 
-def clamp_image(img):
-    """이미지를 [0, 1] 범위로 클램핑하고 8비트(256단계) 양자화 효과를 반영합니다."""
-    img_ = torch.clamp(img, 0., 1.)
-    return torch.round(img_ * 255) / 255.
+def clamp_and_quantize_image(img):
+    """8-bit 반영"""
+    return torch.round(torch.clamp(img, 0., 1.) * 255) / 255.

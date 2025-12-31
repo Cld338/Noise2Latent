@@ -1,129 +1,88 @@
-import os
-import glob
-import json
 import torch
 import torch.nn.functional as F
-import torchvision.transforms as T
-import matplotlib.pyplot as plt
-import copy
+from torchvision import transforms as T
 from PIL import Image
+import copy
 
 from model import NoiseToLatentModel
-from .util import *
+from util import *
 
-def train_one_image(image_path, config, epochs, target_bitwidth=16):
+def train_and_search(image_path, config, epochs=50000):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    image_name = os.path.basename(image_path)
     
+    # 이미지 로드
     img_pil = Image.open(image_path).convert('RGB')
     target = T.ToTensor()(img_pil).unsqueeze(0).to(device)
     _, _, h, w = target.shape
     
-    model = NoiseToLatentModel(h, w, config, device).to(device)
+    model = NoiseToLatentModel(h, w, config).to(device)
+    
+    # 논문 설정: lr 8e-3, Adam, Cosine Annealing
     optimizer = torch.optim.Adam(model.parameters(), lr=8e-3)
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=epochs)
     
-    best_psnr_val = -1.0
-    best_model_state = None
-    
+    # 1. 오버피팅 학습 (MSE Loss)
     model.train()
-    for epoch in range(1, epochs + 1):
-        optimizer.zero_grad(set_to_none=True)
+    for ep in range(epochs):
+        optimizer.zero_grad()
         recon = model()
-        
         loss = F.mse_loss(recon, target)
         loss.backward()
-        
-        torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
         optimizer.step()
         scheduler.step()
         
-        if epoch % 100 == 0:
-            model.eval()
-            with torch.no_grad():
-                cur_recon = model()
-                clamped_psnr = psnr(target, clamp_image(cur_recon))
-                
-                if clamped_psnr > best_psnr_val:
-                    best_psnr_val = clamped_psnr
-                    best_model_state = copy.deepcopy(model.state_dict())
-            model.train()
+        if (ep + 1) % 100 == 0:
+            print(f"Epoch {ep+1} Loss: {loss.item():.6f}")
 
-        if epoch % 1000 == 0:
-            print(f"[{image_name}] Ep {epoch} | Loss: {loss.item():.6f} | Best PSNR: {best_psnr_val:.2f}dB")
-            
-    model.load_state_dict(best_model_state)
+    # 2. Mesh Search (최적 양자화 스텝 찾기)
+    # 후보 스텝: 2^-k 형태
+    candidate_steps = [2**-i for i in range(4, 14)] 
+    best_rd_cost = float('inf')
+    best_q = None
+    best_psnr_val = 0
+    best_bpp_val = 0
     
-    if target_bitwidth == 16:
-        model = model.half()
-        target = target.half()
+    # 논문은 RD trade-off (Loss = D + lambda * R)를 위해 lambda가 필요하지만, 
+    # 여기서는 고정된 설정에서 최적의 PSNR을 내는 Q를 찾는 방식
+    # 논문에서는 특정 lambda에 대해 탐색함.
     
     model.eval()
     with torch.no_grad():
-        final_output = model()
-        final_recon = clamp_image(final_output)
-        final_psnr = psnr(target.float(), final_recon.float())
-        final_bpp = bpp(target, model, target_bitwidth)
+        original_state = copy.deepcopy(model.state_dict())
+        for q in candidate_steps:
+            # 양자화 적용
+            model.load_state_dict(get_quantized_model_state(model, q))
+            recon = clamp_and_quantize_image(model())
             
-    return final_bpp, final_psnr
-
-def save_results_to_json(results_dict, save_path='rd_results.json'):
-    with open(save_path, 'w', encoding='utf-8') as f:
-        json.dump(results_dict, f, indent=4, ensure_ascii=False)
-
-def plot_final_rd_curve(results_dict, save_path='final_rd_curve.png'):
-    plt.figure(figsize=(10, 7))
-    plot_data = []
-    for setting_name, values in results_dict.items():
-        if not values: continue
-        avg_bpp = sum([v[0] for v in values]) / len(values)
-        avg_psnr = sum([v[1] for v in values]) / len(values)
-        plot_data.append((setting_name, avg_bpp, avg_psnr))
-    
-    plot_data.sort(key=lambda x: x[1]) # BPP 순 정렬
-    
-    if plot_data:
-        bpps = [d[1] for d in plot_data]
-        psnrs = [d[2] for d in plot_data]
-        labels = [d[0] for d in plot_data]
-        plt.plot(bpps, psnrs, marker='o', markersize=8, linewidth=2, label='Proposed (Kodak Mean)')
-        for i, label in enumerate(labels):
-            plt.annotate(label, (bpps[i], psnrs[i]), xytext=(5, -5), textcoords='offset points')
-
-    plt.title('Rate-Distortion Performance (16-bit Weights & 8-bit Image)')
-    plt.xlabel('Rate (bpp)')
-    plt.ylabel('Distortion (PSNR dB)')
-    plt.grid(True, linestyle='--', alpha=0.7)
-    plt.legend()
-    plt.savefig(save_path)
-    plt.show()
-
-def main():
-    data_dir = './data/kodak_dataset'
-    image_paths = sorted(glob.glob(os.path.join(data_dir, '*.png')))
-    
-    if not image_paths:
-        print(f"데이터셋을 찾을 수 없습니다: {data_dir}")
-        return
-
-    experiment_configs = [
-        {'name': 'S0 (Very Small)', 'scales': 4, 'nch': 8, 'cch': 8, 'pe_dims': 8, 'M': 2, 'N': 2, 'seed': 42},
-        {'name': 'S1 (Small)', 'scales': 4, 'nch': 12, 'cch': 12, 'pe_dims': 10, 'M': 2, 'N': 2, 'seed': 42},
-        {'name': 'S2 (Medium)', 'scales': 4, 'nch': 12, 'cch': 16, 'pe_dims': 12, 'M': 3, 'N': 3, 'seed': 42},
-        {'name': 'S3 (Large)', 'scales': 4, 'nch': 16, 'cch': 24, 'pe_dims': 16, 'M': 4, 'N': 4, 'seed': 42},
-    ]
-    
-    epochs = 15000 
-    results_dict = {cfg['name']: [] for cfg in experiment_configs}
-
-    for cfg in experiment_configs:
-        print(f"\n--- 현재 세팅: {cfg['name']} ---")
-        for img_path in image_paths:
-            res_bpp, res_psnr = train_one_image(img_path, cfg, epochs, target_bitwidth=16)
-            results_dict[cfg['name']].append((res_bpp, res_psnr))
+            cur_psnr = psnr(target, recon).item()
+            cur_bits = estimate_total_bits(model, q)
+            cur_bpp = cur_bits / (h * w)
             
-            save_results_to_json(results_dict)
-            plot_final_rd_curve(results_dict)
+            # 임의의 lambda (예: 0.01) 설정 시 RD cost 계산
+            rd_cost = F.mse_loss(recon, target).item() + 0.01 * cur_bpp
+            
+            if rd_cost < best_rd_cost:
+                best_rd_cost = rd_cost
+                best_q = q
+                best_psnr_val = cur_psnr
+                best_bpp_val = cur_bpp
+        
+        model.load_state_dict(get_quantized_model_state(model, best_q))
+        
+    print(f"Best Q-Step: {best_q} | PSNR: {best_psnr_val:.2f}dB | BPP: {best_bpp_val:.4f}")
+    return best_bpp_val, best_psnr_val
 
-if __name__ == '__main__':
-    main()
+if __name__ == "__main__":
+    # 논문 Table 1 - Setting 0 (Very Small) 재현 
+    config_s0 = {
+        'scales': 4,
+        'nch': 12,
+        'cch': 8, 
+        'pe_dims': 8,
+        'M': 3,
+        'N': 3,
+        'seed': 42
+    }
+    
+    # 실험 실행
+    train_and_search('data/kodak/kodim01.png', config_s0)
