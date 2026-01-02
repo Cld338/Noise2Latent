@@ -63,14 +63,7 @@ def train_and_search(image_path, config, epochs=1000, lmbda=0.005):
     print(f"BPP: {best_stats['bpp']:.4f} | PSNR: {best_stats['psnr']:.2f}dB")
     return best_stats
 
+
 if __name__ == "__main__":
-    config_s0 = {
-        'scales': 4, 
-        'nch': 12, 
-        'cch': 8, 
-        'pe_dims': 8, 
-        'M': 3, 
-        'N': 3, 
-        'seed': 42
-    }
+    config_s0 = {'scales': 4, 'nch': 12, 'cch': 8, 'pe_dims': 8, 'M': 3, 'N': 3, 'seed': 42}
     train_and_search('C:/workspace/Noise2Latent/data/kodak_dataset/kodim01.png', config_s0, epochs=20000)
