@@ -3,6 +3,7 @@
 import torch
 import torch.nn.functional as F
 
+
 def exp_golomb_bits(x):
     """Exponential-Golomb (k=0) 비트 길이 추정"""
     x_abs = torch.round(x).abs().long()

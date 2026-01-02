@@ -3,8 +3,12 @@ import torch.nn.functional as F
 import torchvision.transforms as T
 from PIL import Image
 import copy
+import json
+import os
+
 from model import NoiseToLatentModel
 from util import *
+
 
 def train_and_search(image_path, config, epochs=1000, lmbda=0.005):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -62,6 +66,71 @@ def train_and_search(image_path, config, epochs=1000, lmbda=0.005):
     print(f"\n[Final Results]")
     print(f"BPP: {best_stats['bpp']:.4f} | PSNR: {best_stats['psnr']:.2f}dB")
     return best_stats
+
+
+def run_experiment(dataset_path, config, epochs=2000, lmbda=0.005, save_json="results.json"):
+    """
+    지정된 폴더 내의 모든 이미지에 대해 학습을 수행하고 결과를 JSON 파일로 저장합니다.
+    
+
+    """
+    valid_extensions = ('.png', '.jpg', '.jpeg', '.bmp')
+    image_files = sorted([f for f in os.listdir(dataset_path) if f.lower().endswith(valid_extensions)])
+    
+    if not image_files:
+        print(f"No images found in {dataset_path}")
+        return
+
+    experiment_data = {
+        "config": config,
+        "hyperparameters": {
+            "epochs": epochs,
+            "lmbda": lmbda
+        },
+        "results": [],
+        "summary": {}
+    }
+
+    print(f"Starting experiment on {len(image_files)} images...")
+
+    total_bpp = 0
+    total_psnr = 0
+    count = 0
+
+    for img_name in image_files:
+        img_path = os.path.join(dataset_path, img_name)
+        print(f"\n>>> Processing: {img_name}")
+        
+        try:
+            stats = train_and_search(img_path, config, epochs=epochs, lmbda=lmbda)
+            
+            result_entry = {
+                "image_name": img_name,
+                "bpp": round(stats['bpp'], 6),
+                "psnr": round(stats['psnr'], 4)
+            }
+            experiment_data["results"].append(result_entry)
+            
+            total_bpp += stats['bpp']
+            total_psnr += stats['psnr']
+            count += 1
+
+            avg_bpp = total_bpp / count
+            avg_psnr = total_psnr / count
+            experiment_data["summary"] = {
+                "avg_bpp": round(avg_bpp, 6),
+                "avg_psnr": round(avg_psnr, 4),
+                "count": count
+            }
+
+            with open(save_json, 'w', encoding='utf-8') as f:
+                json.dump(experiment_data, f, indent=4)
+                
+        except Exception as e:
+            print(f"Error processing {img_name}: {e}")
+
+    print(f"\n[Experiment Finished] Results saved to {save_json}")
+    return experiment_data
 
 
 if __name__ == "__main__":
