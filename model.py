@@ -1,4 +1,4 @@
-import torch
+import torch 
 import math
 import torch.nn as nn
 import torch.nn.functional as F
@@ -24,7 +24,7 @@ class ConvNeXtBlock(nn.Module):
     def __init__(self, dim):
         super().__init__()
         # 파라미터 수 조절을 위해 커널 사이즈 3, 확장 비율 2배 적용
-        self.dwconv = nn.Conv2d(dim, dim, kernel_size=7, padding=3, groups=dim)
+        self.dwconv = nn.Conv2d(dim, dim, kernel_size=3, padding=1, groups=dim)
         self.norm = nn.LayerNorm(dim, eps=1e-6)
         self.pwconv1 = nn.Linear(dim, 2 * dim)
         self.act = nn.GELU()

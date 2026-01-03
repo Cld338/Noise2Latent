@@ -6,7 +6,7 @@ import copy
 import json
 import os
 
-from model import NoiseToLatentModel
+from model2 import NoiseToLatentModel
 from util import *
 
 

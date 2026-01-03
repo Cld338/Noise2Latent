@@ -15,28 +15,13 @@
     "results": [
         {
             "image_name": "kodim01.png",
-            "bpp": 0.082446,
-            "psnr": 18.4538
-        },
-        {
-            "image_name": "kodim02.png",
-            "bpp": 0.048353,
-            "psnr": 20.631
-        },
-        {
-            "image_name": "kodim03.png",
-            "bpp": 0.076042,
-            "psnr": 20.9798
-        },
-        {
-            "image_name": "kodim04.png",
-            "bpp": 0.072929,
-            "psnr": 19.7194
+            "bpp": 0.107552,
+            "psnr": 17.2513
         }
     ],
     "summary": {
-        "avg_bpp": 0.069942,
-        "avg_psnr": 19.946,
-        "count": 4
+        "avg_bpp": 0.107552,
+        "avg_psnr": 17.2513,
+        "count": 1
     }
 }
