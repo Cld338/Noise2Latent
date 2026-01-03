@@ -1,2 +1,3 @@
 data/*
-*/json
+*.json
+__pycache__/
