@@ -1,0 +1,122 @@
+{
+    "config": {
+        "scales": 4,
+        "nch": 12,
+        "cch": 8,
+        "pe_dims": 8,
+        "M": 3,
+        "N": 3,
+        "seed": 42
+    },
+    "hyperparameters": {
+        "epochs": 20000,
+        "lmbda": 0.005
+    },
+    "results": [
+        {
+            "image_name": "kodim01.png",
+            "bpp": 0.062304,
+            "psnr": 18.2284
+        },
+        {
+            "image_name": "kodim02.png",
+            "bpp": 0.048622,
+            "psnr": 23.4582
+        },
+        {
+            "image_name": "kodim03.png",
+            "bpp": 0.05558,
+            "psnr": 21.0369
+        },
+        {
+            "image_name": "kodim04.png",
+            "bpp": 0.059883,
+            "psnr": 21.0576
+        },
+        {
+            "image_name": "kodim05.png",
+            "bpp": 0.071994,
+            "psnr": 16.5858
+        },
+        {
+            "image_name": "kodim06.png",
+            "bpp": 0.056674,
+            "psnr": 20.0126
+        },
+        {
+            "image_name": "kodim07.png",
+            "bpp": 0.065717,
+            "psnr": 18.8891
+        },
+        {
+            "image_name": "kodim08.png",
+            "bpp": 0.073357,
+            "psnr": 15.4491
+        },
+        {
+            "image_name": "kodim09.png",
+            "bpp": 0.062798,
+            "psnr": 19.1044
+        },
+        {
+            "image_name": "kodim10.png",
+            "bpp": 0.056318,
+            "psnr": 19.4599
+        },
+        {
+            "image_name": "kodim11.png",
+            "bpp": 0.063362,
+            "psnr": 18.4867
+        },
+        {
+            "image_name": "kodim12.png",
+            "bpp": 0.054558,
+            "psnr": 21.7274
+        },
+        {
+            "image_name": "kodim13.png",
+            "bpp": 0.064913,
+            "psnr": 17.1617
+        },
+        {
+            "image_name": "kodim14.png",
+            "bpp": 0.066699,
+            "psnr": 18.5522
+        },
+        {
+            "image_name": "kodim15.png",
+            "bpp": 0.062091,
+            "psnr": 20.4288
+        },
+        {
+            "image_name": "kodim16.png",
+            "bpp": 0.043643,
+            "psnr": 23.2835
+        },
+        {
+            "image_name": "kodim17.png",
+            "bpp": 0.059237,
+            "psnr": 19.8751
+        },
+        {
+            "image_name": "kodim18.png",
+            "bpp": 0.063698,
+            "psnr": 19.465
+        },
+        {
+            "image_name": "kodim19.png",
+            "bpp": 0.067212,
+            "psnr": 18.7374
+        },
+        {
+            "image_name": "kodim20.png",
+            "bpp": 0.061582,
+            "psnr": 20.7366
+        }
+    ],
+    "summary": {
+        "avg_bpp": 0.061012,
+        "avg_psnr": 19.5868,
+        "count": 20
+    }
+}
