@@ -9,19 +9,19 @@
         "seed": 42
     },
     "hyperparameters": {
-        "epochs": 20000,
+        "epochs": 1000,
         "lmbda": 0.005
     },
     "results": [
         {
             "image_name": "kodim01.png",
-            "bpp": 0.107552,
-            "psnr": 17.2513
+            "bpp": 0.144422,
+            "psnr": 19.4001
         }
     ],
     "summary": {
-        "avg_bpp": 0.107552,
-        "avg_psnr": 17.2513,
+        "avg_bpp": 0.144422,
+        "avg_psnr": 19.4001,
         "count": 1
     }
 }

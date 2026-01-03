@@ -6,7 +6,7 @@ import copy
 import json
 import os
 
-from model2 import NoiseToLatentModel
+from model_v2 import NoiseToLatentModel
 from util import *
 
 
@@ -20,7 +20,7 @@ def train_and_search(image_path, config, epochs=1000, lmbda=0.005):
     
     # Adam lr 8e-3
     # BPP 감소를 위해 Weight Decay 추가
-    optimizer = torch.optim.Adam(model.parameters(), lr=8e-3, weight_decay=1e-5) 
+    optimizer = torch.optim.Adam(model.parameters(), lr=8e-3) # weight_decay=1e-5
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=epochs)
     
     print(f"Starting training for {epochs} epochs...")
