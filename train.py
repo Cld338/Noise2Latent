@@ -135,4 +135,5 @@ def run_experiment(dataset_path, config, epochs=2000, lmbda=0.005, save_json="re
 
 if __name__ == "__main__":
     config_s0 = {'scales': 4, 'nch': 12, 'cch': 8, 'pe_dims': 8, 'M': 3, 'N': 3, 'seed': 42}
-    train_and_search('C:/workspace/Noise2Latent/data/kodak_dataset/kodim01.png', config_s0, epochs=20000)
+    # train_and_search('C:/workspace/Noise2Latent/data/kodak_dataset/kodim01.png', config_s0, epochs=20000)
+    run_experiment("./data/kodak_dataset/", config_s0, 20000, 0.005)
