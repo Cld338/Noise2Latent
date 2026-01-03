@@ -9,19 +9,134 @@
         "seed": 42
     },
     "hyperparameters": {
-        "epochs": 1000,
+        "epochs": 20000,
         "lmbda": 0.005
     },
     "results": [
         {
             "image_name": "kodim01.png",
-            "bpp": 0.144422,
-            "psnr": 19.4001
+            "bpp": 0.117892,
+            "psnr": 19.3385
+        },
+        {
+            "image_name": "kodim02.png",
+            "bpp": 0.118726,
+            "psnr": 26.677
+        },
+        {
+            "image_name": "kodim03.png",
+            "bpp": 0.116651,
+            "psnr": 24.8604
+        },
+        {
+            "image_name": "kodim04.png",
+            "bpp": 0.116529,
+            "psnr": 23.0645
+        },
+        {
+            "image_name": "kodim05.png",
+            "bpp": 0.120588,
+            "psnr": 17.2971
+        },
+        {
+            "image_name": "kodim06.png",
+            "bpp": 0.118579,
+            "psnr": 22.6167
+        },
+        {
+            "image_name": "kodim07.png",
+            "bpp": 0.119769,
+            "psnr": 21.4131
+        },
+        {
+            "image_name": "kodim08.png",
+            "bpp": 0.120079,
+            "psnr": 16.1866
+        },
+        {
+            "image_name": "kodim09.png",
+            "bpp": 0.119255,
+            "psnr": 23.3707
+        },
+        {
+            "image_name": "kodim10.png",
+            "bpp": 0.115476,
+            "psnr": 23.7586
+        },
+        {
+            "image_name": "kodim11.png",
+            "bpp": 0.119245,
+            "psnr": 21.7701
+        },
+        {
+            "image_name": "kodim12.png",
+            "bpp": 0.116096,
+            "psnr": 26.0943
+        },
+        {
+            "image_name": "kodim13.png",
+            "bpp": 0.119916,
+            "psnr": 18.3587
+        },
+        {
+            "image_name": "kodim14.png",
+            "bpp": 0.119342,
+            "psnr": 20.0449
+        },
+        {
+            "image_name": "kodim15.png",
+            "bpp": 0.117256,
+            "psnr": 24.989
+        },
+        {
+            "image_name": "kodim16.png",
+            "bpp": 0.116239,
+            "psnr": 25.4221
+        },
+        {
+            "image_name": "kodim17.png",
+            "bpp": 0.117226,
+            "psnr": 22.0915
+        },
+        {
+            "image_name": "kodim18.png",
+            "bpp": 0.119601,
+            "psnr": 20.2028
+        },
+        {
+            "image_name": "kodim19.png",
+            "bpp": 0.119225,
+            "psnr": 21.5068
+        },
+        {
+            "image_name": "kodim20.png",
+            "bpp": 0.119219,
+            "psnr": 23.1669
+        },
+        {
+            "image_name": "kodim21.png",
+            "bpp": 0.119932,
+            "psnr": 20.5589
+        },
+        {
+            "image_name": "kodim22.png",
+            "bpp": 0.118324,
+            "psnr": 22.5323
+        },
+        {
+            "image_name": "kodim23.png",
+            "bpp": 0.116264,
+            "psnr": 22.339
+        },
+        {
+            "image_name": "kodim24.png",
+            "bpp": 0.120939,
+            "psnr": 19.6587
         }
     ],
     "summary": {
-        "avg_bpp": 0.144422,
-        "avg_psnr": 19.4001,
-        "count": 1
+        "avg_bpp": 0.118432,
+        "avg_psnr": 21.9716,
+        "count": 24
     }
 }
